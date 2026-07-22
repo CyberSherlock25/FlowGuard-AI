@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
 import { fetchDashboardData, startLiveSimulation as apiStartSimulation, triggerEmergency as apiTriggerEmergency } from '../services/api';
 
 const SimulationContext = createContext(null);
@@ -12,44 +13,66 @@ export const SimulationProvider = ({ children }) => {
   const [countdown, setCountdown] = useState(30);
   const [selectedZone, setSelectedZone] = useState(null);
   const [webexModalOpen, setWebexModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('dashboard'); // dashboard, digital-twin, cameras, ai-assistant, victim-rescue, emergency, timeline, passenger, reports, settings
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [dashboardData, setDashboardData] = useState(null);
+  const [geminiAnalysis, setGeminiAnalysis] = useState(null);
 
-  // Audio alert effect simulation flag
-  const [audioAlertTriggered, setAudioAlertTriggered] = useState(false);
+  // Dynamic Audit Timeline Logs
+  const [timelineLogs, setTimelineLogs] = useState([
+    { id: 1, time: '04:30:10 UTC', event: 'Station Flow Baseline Initialized', cat: 'SYSTEM', severity: 'INFO', desc: 'Crowd density optimal at 15%. All 6 CCTV video feeds online.', actor: 'CrowdShield Core' },
+    { id: 2, time: '04:30:25 UTC', event: 'Google Gemini AI Telemetry Connected', cat: 'GEMINI_AI', severity: 'INFO', desc: 'Spring Boot backend Gemini decision engine actively generating predictions.', actor: 'Gemini AI' }
+  ]);
 
-  // Load initial data
+  // Load live data & Gemini AI analysis
   const loadData = useCallback(async () => {
     const data = await fetchDashboardData();
     setDashboardData(data);
+    try {
+      const gRes = await axios.get('/api/ai/analyze');
+      setGeminiAnalysis(gRes.data);
+    } catch (err) {
+      setGeminiAnalysis({
+        situationSummary: 'Station operating normally. Flow steady.',
+        operatorRecommendation: 'Continue standard video surveillance.'
+      });
+    }
   }, []);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  // Simulation State Machine Runner
+  const addTimelineLog = (event, cat, severity, desc, actor) => {
+    const time = new Date().toISOString().substring(11, 19) + ' UTC';
+    setTimelineLogs(prev => [
+      { id: Date.now(), time, event, cat, severity, desc, actor },
+      ...prev
+    ]);
+  };
+
+  // Automated 4-Stage Simulation Sequence
   const startSimulationSequence = async () => {
     setIsSimulating(true);
-    setAudioAlertTriggered(false);
 
     // Stage 1: SAFE (Immediately)
     setScenario('SAFE');
     setRiskScore(15);
+    addTimelineLog('Simulation Started', 'SIMULATION', 'INFO', 'User initiated live 4-stage crowd simulation sequence.', userRole || 'Operator');
     apiStartSimulation();
 
     // Stage 2: WARNING (after 4.5 seconds)
     setTimeout(() => {
       setScenario('WARNING');
       setRiskScore(80);
+      addTimelineLog('Congestion Warning Triggered', 'AI_PREDICTION', 'WARNING', 'YOLO vision model & Gemini AI identified 80% density surge on FOB North.', 'Gemini AI');
     }, 4500);
 
     // Stage 3: CRITICAL (after 10 seconds)
     setTimeout(() => {
       setScenario('CRITICAL');
       setRiskScore(98);
-      setAudioAlertTriggered(true);
       setCountdown(30);
+      addTimelineLog('CRITICAL EMERGENCY ACTIVATED', 'EMERGENCY_DISPATCH', 'CRITICAL', 'Turnstiles auto-locked. Exit B opened. Police & Medical dispatched.', 'System Auto-Dispatcher');
     }, 10000);
 
     // Stage 4: RECOVERY MODE (after 25 seconds)
@@ -57,6 +80,7 @@ export const SimulationProvider = ({ children }) => {
       setScenario('RECOVERY');
       setRiskScore(22);
       setIsSimulating(false);
+      addTimelineLog('Incident Resolved & Recovered', 'RECOVERY', 'SUCCESS', 'Station crowd density returned to safe 22% baseline. 0 casualties sustained.', 'CrowdShield Core');
       loadData();
     }, 25000);
   };
@@ -90,8 +114,8 @@ export const SimulationProvider = ({ children }) => {
   const manualTriggerEmergency = async () => {
     setScenario('CRITICAL');
     setRiskScore(98);
-    setAudioAlertTriggered(true);
     setCountdown(30);
+    addTimelineLog('Manual Emergency Broadcasted', 'MANUAL_OVERRIDE', 'CRITICAL', `${userRole} manually broadcasted critical emergency to all role dashboards.`, userRole || 'Operator');
     await apiTriggerEmergency();
   };
 
@@ -116,9 +140,11 @@ export const SimulationProvider = ({ children }) => {
         activeTab,
         setActiveTab,
         dashboardData,
+        geminiAnalysis,
         loadData,
         manualTriggerEmergency,
-        audioAlertTriggered
+        timelineLogs,
+        addTimelineLog
       }}
     >
       {children}

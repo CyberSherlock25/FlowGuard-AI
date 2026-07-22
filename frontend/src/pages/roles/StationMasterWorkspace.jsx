@@ -38,6 +38,25 @@ const StationMasterWorkspace = () => {
     <div className="space-y-6 font-sans">
       <ZoneDetailDrawer />
 
+      {/* Synchronized RED LIGHT Emergency Alert Banner */}
+      {scenario === 'CRITICAL' && (
+        <div className="p-4 rounded-3xl bg-rose-950/90 border-2 border-rose-500 text-xs font-bold text-rose-200 flex items-center justify-between glow-red animate-pulse shadow-2xl">
+          <div className="flex items-center space-x-3">
+            <Siren className="w-6 h-6 text-rose-500 animate-bounce" />
+            <div>
+              <div className="text-rose-400 font-black text-sm uppercase tracking-wider">CRITICAL RED LIGHT EMERGENCY ACTIVE</div>
+              <p className="text-[11px] text-slate-200 mt-0.5">Physical crowd pressure reached 8.9 PSI. Exit B unlocked. Inbound turnstiles locked.</p>
+            </div>
+          </div>
+          <button
+            onClick={() => setWebexModalOpen(true)}
+            className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-lg shadow-rose-600/40 shrink-0"
+          >
+            Launch Webex Crisis Room
+          </button>
+        </div>
+      )}
+
       {/* Header Banner */}
       <div className="glass-panel p-5 rounded-3xl border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>

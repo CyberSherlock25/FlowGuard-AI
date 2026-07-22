@@ -2,16 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useSimulation } from '../context/SimulationContext';
 import { fetchCameraFeeds } from '../services/api';
 import ComputerVisionOverlay from '../components/ComputerVisionOverlay';
-import CVPipelineInspector from '../components/CVPipelineInspector';
-import { Camera, Eye, Activity, Gauge, Zap, AlertTriangle, ShieldCheck, Cpu } from 'lucide-react';
+import { Camera, Eye, Activity, Gauge, Zap, AlertTriangle, ShieldCheck } from 'lucide-react';
 
 const videoSources = [
-  '/cctv/cctv1.mp4',
+  '/cctv/cctv3.mp4', // Actual Stampede video
+  '/cctv/cctv2.mp4', // WhatsApp CCTV feed
+  '/cctv/cctv1.mp4', // Sample station video
   '/cctv/cctv3.mp4',
   '/cctv/cctv2.mp4',
-  '/cctv/cctv1.mp4',
-  '/cctv/cctv2.mp4',
-  '/cctv/cctv3.mp4'
+  '/cctv/cctv1.mp4'
 ];
 
 const CameraAnalyticsPage = () => {
@@ -31,23 +30,20 @@ const CameraAnalyticsPage = () => {
             <Camera className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-slate-100">Live AI CCTV Surveillance Grid</h2>
-            <p className="text-xs text-slate-400">6 High-Definition CCTV Feeds Playing Real Station Video with YOLOv11 & ByteTrack Computer Vision Overlay</p>
+            <h2 className="text-xl font-bold text-slate-100">Live AI CCTV Video Surveillance Center</h2>
+            <p className="text-xs text-slate-400">High-Definition Real Station Video Feeds with Sleek YOLOv11 & ByteTrack Bounding Overlays</p>
           </div>
         </div>
 
         <div className="flex items-center space-x-2 text-xs font-semibold">
           <span className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center space-x-1">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>6/6 Live MP4 CCTV Streams Active</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+            <span>6/6 CCTV HD Video Streams Active</span>
           </span>
         </div>
       </div>
 
-      {/* Visual 9-Stage Computer Vision Pipeline Inspector */}
-      <CVPipelineInspector />
-
-      {/* 6 Live Camera Grid with Real Video Playback */}
+      {/* 6 Live Camera Grid displaying Large, Clear Videos */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {cameras.map((cam, idx) => {
           let isCritical = scenario === 'CRITICAL';
@@ -62,7 +58,7 @@ const CameraAnalyticsPage = () => {
             <div
               key={cam.cameraId || idx}
               className={`rounded-2xl glass-panel border overflow-hidden flex flex-col justify-between transition-all ${
-                isCritical ? 'border-rose-500/70 glow-red' : isWarning ? 'border-amber-500/70 glow-yellow' : 'border-slate-800'
+                isCritical ? 'border-rose-500/80 glow-red' : isWarning ? 'border-amber-500/80 glow-yellow' : 'border-slate-800'
               }`}
             >
               {/* Computer Vision Video Render Viewport */}
@@ -79,20 +75,20 @@ const CameraAnalyticsPage = () => {
               <div className="p-4 space-y-3">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-bold text-slate-100">{cam.location} Zone</span>
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                    isCritical ? 'bg-rose-500 text-white' : isWarning ? 'bg-amber-500 text-slate-950' : 'bg-emerald-500/20 text-emerald-400'
+                  <span className={`px-2.5 py-1 rounded text-[10px] font-bold ${
+                    isCritical ? 'bg-rose-500 text-white animate-pulse' : isWarning ? 'bg-amber-500 text-slate-950' : 'bg-emerald-500/20 text-emerald-400'
                   }`}>
-                    {isCritical ? 'CRITICAL (98%)' : isWarning ? 'WARNING (80%)' : 'SAFE (15%)'}
+                    {isCritical ? 'CRITICAL CROWD (98%)' : isWarning ? 'WARNING CONGESTION (80%)' : 'SAFE FLOW (15%)'}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-800 space-y-0.5">
+                  <div className="bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 space-y-0.5">
                     <div className="text-slate-400 text-[10px]">People Count</div>
                     <div className="font-bold text-slate-100 text-sm">{currentPeople} Persons</div>
                   </div>
 
-                  <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-800 space-y-0.5">
+                  <div className="bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 space-y-0.5">
                     <div className="text-slate-400 text-[10px]">Crowd Density</div>
                     <div className={`font-bold text-sm ${currentDensity > 80 ? 'text-rose-400' : currentDensity > 50 ? 'text-amber-400' : 'text-emerald-400'}`}>
                       {currentDensity}%

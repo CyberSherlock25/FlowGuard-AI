@@ -3,18 +3,18 @@ import { useSimulation } from '../context/SimulationContext';
 import { Siren, CheckCircle2, Video, Lock, Unlock, Droplets, Volume2, ShieldAlert, HeartPulse, Clock, Sparkles } from 'lucide-react';
 
 const timelineSteps = [
-  { id: 1, stage: 'Prediction', label: 'AI Congestion Forecast', desc: 'Predictive neural model identified 80% bottleneck on FOB North.', icon: Sparkles },
+  { id: 1, stage: 'Prediction', label: 'AI Congestion Forecast', desc: 'Neural vision model identified 80% bottleneck probability on FOB North.', icon: Sparkles },
   { id: 2, stage: 'Alert', label: 'Automated Crisis Alert', desc: 'Station Master & RPF notified via radio and dashboard popups.', icon: Siren },
   { id: 3, stage: 'Police', label: 'RPF Ground Dispatch', desc: 'Railway Police Force deployed to regulate FOB stair entrance.', icon: ShieldAlert },
   { id: 4, stage: 'Medical', label: 'Medical Triage Ready', desc: 'Medical Team Alpha stationed at North Concourse with ambulances.', icon: HeartPulse },
   { id: 5, stage: 'Gate Open', label: 'Emergency Gate B Unlocked', desc: 'Turnstiles reversed to allow fast outbound clearance.', icon: Unlock },
   { id: 6, stage: 'Crowd Redirected', label: 'Dynamic Route Diversion', desc: 'Digital signboards & voice guidance routed crowd to Escalator 2.', icon: Volume2 },
   { id: 7, stage: 'Victims Rescued', label: 'Targeted Victim Evacuation', desc: 'All 12 high-risk passengers safely assisted by ground crew.', icon: CheckCircle2 },
-  { id: 8, stage: 'Station Safe', label: 'Operations Stabilized', desc: 'Crowd density returned to normal 25% safe baseline.', icon: CheckCircle2 },
+  { id: 8, stage: 'Station Safe', label: 'Operations Stabilized', desc: 'Crowd density returned to normal 22% safe baseline.', icon: CheckCircle2 },
 ];
 
 const EmergencyResponsePage = () => {
-  const { scenario, setWebexModalOpen, manualTriggerEmergency } = useSimulation();
+  const { scenario, setWebexModalOpen, manualTriggerEmergency, addTimelineLog } = useSimulation();
 
   const getActiveStepIndex = () => {
     switch (scenario) {
@@ -33,17 +33,26 @@ const EmergencyResponsePage = () => {
 
   const currentActive = getActiveStepIndex();
 
+  const handleAction = (actionName, logMsg) => {
+    addTimelineLog(actionName, 'HARDWARE_OVERRIDE', 'CRITICAL', logMsg, 'Operator Action');
+    alert(`[EMERGENCY OVERRIDE] ${actionName} Triggered successfully across all synced role dashboards!`);
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* Header */}
-      <div className="flex items-center justify-between glass-panel p-4 rounded-2xl border border-slate-800">
+      <div className={`flex items-center justify-between glass-panel p-4 rounded-2xl border transition-all ${
+        scenario === 'CRITICAL' ? 'border-rose-500/80 glow-red' : scenario === 'WARNING' ? 'border-amber-500/80 glow-yellow' : 'border-slate-800'
+      }`}>
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+            scenario === 'CRITICAL' ? 'bg-rose-500 text-white animate-bounce' : 'bg-rose-500/20 text-rose-400'
+          }`}>
             <Siren className="w-6 h-6" />
           </div>
           <div>
             <h2 className="text-xl font-bold text-slate-100">Emergency Incident Response Command</h2>
-            <p className="text-xs text-slate-400">Multi-Agency Cisco Smart City Incident Coordination Hub</p>
+            <p className="text-xs text-slate-400">Multi-Agency Cisco Smart City Real-time Incident Coordination Hub</p>
           </div>
         </div>
 
@@ -58,22 +67,22 @@ const EmergencyResponsePage = () => {
 
           <button
             onClick={manualTriggerEmergency}
-            className="py-2 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-lg shadow-rose-600/30 flex items-center space-x-1"
+            className="py-2 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-lg shadow-rose-600/30 flex items-center space-x-1 animate-pulse"
           >
             <Siren className="w-4 h-4" />
-            <span>Trigger Full Emergency</span>
+            <span>Trigger Red Light Emergency</span>
           </button>
         </div>
       </div>
 
-      {/* Animated 8-Stage Timeline */}
+      {/* Dynamic 8-Stage Timeline */}
       <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-6">
         <div className="flex items-center justify-between">
           <h3 className="font-bold text-slate-100 text-sm uppercase tracking-wider">
-            Automated Emergency Response Timeline
+            Automated Emergency Response Timeline Progress
           </h3>
           <span className="text-xs font-semibold text-cyan-400">
-            Stage {currentActive} of 8 Executed
+            Stage {currentActive} of 8 Active Mode: {scenario}
           </span>
         </div>
 
@@ -89,7 +98,7 @@ const EmergencyResponsePage = () => {
                 key={step.id}
                 className={`p-4 rounded-2xl border flex flex-col justify-between space-y-3 transition-all ${
                   isCurrent
-                    ? 'bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border-cyan-500/80 shadow-xl shadow-cyan-950 scale-102 glow-cisco'
+                    ? 'bg-gradient-to-br from-rose-500/20 to-blue-600/20 border-rose-500/80 shadow-xl shadow-rose-950 scale-102 glow-red'
                     : isCompleted
                     ? 'bg-emerald-950/20 border-emerald-800/60 text-slate-200'
                     : 'bg-slate-900/40 border-slate-800/80 opacity-50'
@@ -97,12 +106,12 @@ const EmergencyResponsePage = () => {
               >
                 <div className="flex items-center justify-between">
                   <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs ${
-                    isCurrent ? 'bg-cyan-500 text-white animate-bounce' : isCompleted ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-400'
+                    isCurrent ? 'bg-rose-500 text-white animate-bounce' : isCompleted ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-400'
                   }`}>
                     <Icon className="w-5 h-5" />
                   </div>
                   <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
-                    isCurrent ? 'bg-cyan-500/30 text-cyan-300 border border-cyan-500/50' : isCompleted ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-500'
+                    isCurrent ? 'bg-rose-500/30 text-rose-300 border border-rose-500/50' : isCompleted ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-500'
                   }`}>
                     {step.stage}
                   </span>
@@ -125,11 +134,11 @@ const EmergencyResponsePage = () => {
 
       {/* Manual Hardware Emergency Control Panel */}
       <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4">
-        <h3 className="font-bold text-slate-100 text-sm">Station Smart Hardware Override Controls</h3>
+        <h3 className="font-bold text-slate-100 text-sm">Synchronized Station Override Controls</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <button
-            onClick={() => alert('Inbound Turnstiles Locked')}
+            onClick={() => handleAction('Lock Inbound Turnstiles', 'Inbound turnstiles locked remotely by operator.')}
             className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-amber-500/50 flex items-center space-x-3 transition text-left"
           >
             <Lock className="w-6 h-6 text-amber-400 shrink-0" />
@@ -140,7 +149,7 @@ const EmergencyResponsePage = () => {
           </button>
 
           <button
-            onClick={() => alert('Emergency Exit B Released Wide Open')}
+            onClick={() => handleAction('Release Emergency Exit B', 'Emergency Exit B gates unlocked remotely.')}
             className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-cyan-500/50 flex items-center space-x-3 transition text-left"
           >
             <Unlock className="w-6 h-6 text-cyan-400 shrink-0" />
@@ -151,7 +160,7 @@ const EmergencyResponsePage = () => {
           </button>
 
           <button
-            onClick={() => alert('Cooling Mist Spray System Activated')}
+            onClick={() => handleAction('Activate Cooling Mist Spray', 'Cooling mist spray system activated on FOB North.')}
             className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-cyan-500/50 flex items-center space-x-3 transition text-left"
           >
             <Droplets className="w-6 h-6 text-cyan-400 shrink-0" />
@@ -162,7 +171,7 @@ const EmergencyResponsePage = () => {
           </button>
 
           <button
-            onClick={() => alert('Emergency Voice Announcement Broadcasted')}
+            onClick={() => handleAction('Broadcast Evacuation PA', 'Emergency evacuation audio broadcasted.')}
             className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-emerald-500/50 flex items-center space-x-3 transition text-left"
           >
             <Volume2 className="w-6 h-6 text-emerald-400 shrink-0" />

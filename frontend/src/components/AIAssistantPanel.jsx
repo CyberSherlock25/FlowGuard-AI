@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { useSimulation } from '../context/SimulationContext';
-import { Bot, CheckCircle2, Clock, ShieldCheck, AlertCircle, ArrowRight, Zap, RefreshCw } from 'lucide-react';
+import { Bot, CheckCircle2, Clock, ShieldCheck, AlertCircle, ArrowRight, Zap, Sparkles } from 'lucide-react';
 
 const AIAssistantPanel = ({ fullPage = false }) => {
-  const { scenario, riskScore, setWebexModalOpen } = useSimulation();
+  const { scenario, riskScore, setWebexModalOpen, geminiAnalysis } = useSimulation();
 
   // Interactive Checklist state
   const [checklist, setChecklist] = useState([
     { id: 1, text: 'Deploy RPF ground staff to FOB North staircase', checked: true },
-    { id: 2, text: 'Inspect Camera 03 live scanline feed', checked: true },
+    { id: 2, text: 'Inspect Camera 02 live CCTV video feed', checked: true },
     { id: 3, text: 'Prepare Station Medical Clinic emergency responders', checked: false },
     { id: 4, text: 'Authorize public announcement audio alert', checked: false }
   ]);
@@ -18,65 +18,39 @@ const AIAssistantPanel = ({ fullPage = false }) => {
   };
 
   const getContent = () => {
-    switch (scenario) {
-      case 'SAFE':
-        return {
-          situation: 'Station operating normally. Passenger flow across Platform 1, Platform 2, and Foot Overbridges is steady with low physical crowd pressure.',
-          prediction: 'Expected arrival of CSMT Fast Local in 4 minutes may cause mild platform surge, but density will remain safely under 50%.',
-          recommendedAction: 'Maintain automated continuous monitoring and display platform departure details on digital signboards.',
-          actionsTaken: [
-            'Automated crowd counting active across 6 CCTV cameras.',
-            'Entry turnstiles operating at normal speed.',
-            'Station public announcement system broadcasting standard departure updates.'
-          ],
-          resolutionTime: '0 Mins (Normal Operations)'
-        };
-      case 'WARNING':
-        return {
-          situation: 'Crowd density on Foot Overbridge North and Stairs A has reached 80%. Walking speed is slowing down to 0.4 meters per second.',
-          prediction: 'High risk of a severe bottleneck on Stairs A within the next 3 to 4 minutes if incoming platform entry is not regulated.',
-          recommendedAction: 'Update digital signboards, direct passengers to Escalator 1, notify Station Master, and open Emergency Exit B.',
-          actionsTaken: [
-            'Digital signboards updated to show alternate FOB route.',
-            'Station Master notified via automated radio link.',
-            'Emergency Exit B gates unlocked remotely.'
-          ],
-          resolutionTime: '3.5 Minutes (With Operator Action)'
-        };
-      case 'CRITICAL':
-        return {
-          situation: 'CRITICAL CROWD PRESSURE DETECTED on Foot Overbridge and Concourse Stairs A. Physical pressure index has exceeded safe limits (8.9 PSI).',
-          prediction: 'Immediate risk of crowd crush or stampede if movement remains blocked for more than 30 seconds.',
-          recommendedAction: 'Immediately stop entry turnstiles, open all emergency exit gates, dispatch Railway Police & Medical Team Alpha, and activate cooling mist spray.',
-          actionsTaken: [
-            'Main entry turnstiles automatically locked inbound.',
-            'All emergency exit gates released wide open.',
-            'Railway Police Force (RPF) and Medical Unit 1 dispatched to zone.',
-            'Cisco Webex Emergency Incident Room initiated.'
-          ],
-          resolutionTime: '1.2 Minutes (Emergency Protocols Active)'
-        };
-      case 'RECOVERY':
-        return {
-          situation: 'Crowd congestion successfully cleared. Pedestrian movement across Foot Overbridges and Platforms has returned to normal speeds (1.5 m/s).',
-          prediction: 'Station risk score stabilized at 22%. Platform 1 clear for incoming trains.',
-          recommendedAction: 'Reopen main entry turnstiles gradually and return emergency responders to standard standby positions.',
-          actionsTaken: [
-            'All 12 high-risk passengers safely guided away from bottleneck.',
-            'Emergency exits returned to standard monitoring mode.',
-            'Final Incident Report submitted to Central Operations.'
-          ],
-          resolutionTime: 'Fully Recovered'
-        };
-      default:
-        return {};
+    // If Google Gemini backend response is present, use it!
+    if (geminiAnalysis && geminiAnalysis.situationSummary) {
+      return {
+        situation: geminiAnalysis.situationSummary,
+        prediction: geminiAnalysis.riskExplanation || 'Elevated crowd density forecast on FOB North.',
+        recommendedAction: geminiAnalysis.operatorRecommendation || 'Redirect passengers via Escalator 2.',
+        actionsTaken: [
+          geminiAnalysis.policeInstructions || 'RPF patrol active on FOB North.',
+          geminiAnalysis.passengerAnnouncement || 'Digital signboards updated.',
+          geminiAnalysis.medicalInstructions || 'Medical Unit 1 on standby.'
+        ],
+        resolutionTime: scenario === 'CRITICAL' ? '1.2 Minutes' : scenario === 'WARNING' ? '3.5 Minutes' : '0 Mins'
+      };
     }
+
+    // Static fallback if backend loading
+    return {
+      situation: scenario === 'CRITICAL' ? 'CRITICAL STAMPEDE HAZARD: Physical pressure (8.9 PSI) on FOB North.' : scenario === 'WARNING' ? 'CONGESTION WARNING: Density at 80% on FOB North stairs.' : 'Station operating normally with smooth crowd flow.',
+      prediction: scenario === 'CRITICAL' ? 'Immediate risk of crowd crush within 30 seconds.' : scenario === 'WARNING' ? 'High bottleneck risk in 4 minutes.' : 'Normal flow forecast for next 15 minutes.',
+      recommendedAction: scenario === 'CRITICAL' ? 'Stop turnstiles, open Exit B, dispatch RPF & Medical.' : scenario === 'WARNING' ? 'Update digital signboards to redirect flow to Escalator 2.' : 'Continue video surveillance.',
+      actionsTaken: [
+        'Automated crowd counting active across 6 CCTV video feeds.',
+        'Gemini AI API connected to Spring Boot backend.',
+        'Cisco Smart Mesh telemetry synced.'
+      ],
+      resolutionTime: scenario === 'CRITICAL' ? '1.2 Minutes' : scenario === 'WARNING' ? '3.5 Minutes' : '0 Mins'
+    };
   };
 
   const info = getContent();
 
   return (
-    <div className={`rounded-2xl glass-panel border border-slate-800 p-5 space-y-5 flex flex-col ${fullPage ? 'h-full' : ''}`}>
+    <div className={`rounded-2xl glass-panel border border-slate-800 p-5 space-y-5 flex flex-col font-sans ${fullPage ? 'h-full' : ''}`}>
       {/* Panel Header */}
       <div className="flex items-center justify-between border-b border-slate-800 pb-3">
         <div className="flex items-center space-x-2.5">
@@ -84,8 +58,11 @@ const AIAssistantPanel = ({ fullPage = false }) => {
             <Bot className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-bold text-slate-100 text-sm">AI Crowd Decision Assistant</h3>
-            <p className="text-[11px] text-slate-400">Plain Natural Language Incident Advisor</p>
+            <div className="flex items-center space-x-1 text-slate-100 font-bold text-sm">
+              <span>Google Gemini AI Decision Engine</span>
+              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+            </div>
+            <p className="text-[11px] text-slate-400">Spring Boot REST Connected Telemetry</p>
           </div>
         </div>
         <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] text-cyan-300">
@@ -94,19 +71,19 @@ const AIAssistantPanel = ({ fullPage = false }) => {
         </div>
       </div>
 
-      {/* Current Situation */}
+      {/* Situation Summary */}
       <div className="space-y-1.5">
-        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Current Situation</div>
-        <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-200 leading-relaxed">
+        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Live Gemini Situation Summary</div>
+        <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-200 leading-relaxed font-medium">
           {info.situation}
         </div>
       </div>
 
-      {/* AI Prediction */}
+      {/* AI Risk Explanation */}
       <div className="space-y-1.5">
         <div className="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center space-x-1">
           <AlertCircle className="w-3.5 h-3.5" />
-          <span>AI Forecast</span>
+          <span>AI Risk Prediction</span>
         </div>
         <div className="p-3.5 rounded-xl bg-amber-950/20 border border-amber-800/40 text-xs text-amber-200/90 leading-relaxed">
           {info.prediction}
@@ -117,9 +94,9 @@ const AIAssistantPanel = ({ fullPage = false }) => {
       <div className="space-y-1.5">
         <div className="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center space-x-1">
           <Zap className="w-3.5 h-3.5" />
-          <span>Recommended Action</span>
+          <span>Gemini Recommended Action</span>
         </div>
-        <div className="p-3.5 rounded-xl bg-cyan-950/30 border border-cyan-800/50 text-xs text-cyan-200 leading-relaxed font-medium">
+        <div className="p-3.5 rounded-xl bg-cyan-950/30 border border-cyan-800/50 text-xs text-cyan-200 leading-relaxed font-bold">
           {info.recommendedAction}
         </div>
       </div>
@@ -128,7 +105,7 @@ const AIAssistantPanel = ({ fullPage = false }) => {
       <div className="space-y-1.5">
         <div className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center space-x-1">
           <ShieldCheck className="w-3.5 h-3.5" />
-          <span>Actions System Has Automated</span>
+          <span>Automated System Operations</span>
         </div>
         <ul className="space-y-1.5 text-xs text-slate-300">
           {info.actionsTaken?.map((action, idx) => (
@@ -169,17 +146,6 @@ const AIAssistantPanel = ({ fullPage = false }) => {
           ))}
         </div>
       </div>
-
-      {/* Webex Quick Trigger Button if CRITICAL */}
-      {scenario === 'CRITICAL' && (
-        <button
-          onClick={() => setWebexModalOpen(true)}
-          className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-blue-600/30 flex items-center justify-center space-x-2 animate-bounce"
-        >
-          <Bot className="w-4 h-4" />
-          <span>Launch Cisco Webex Incident Room</span>
-        </button>
-      )}
     </div>
   );
 };

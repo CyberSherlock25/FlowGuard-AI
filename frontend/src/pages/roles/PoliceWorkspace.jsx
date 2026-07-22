@@ -13,7 +13,8 @@ import {
   UserCheck,
   Zap,
   ChevronRight,
-  Eye
+  Eye,
+  Siren
 } from 'lucide-react';
 
 const policeUnits = [
@@ -24,12 +25,31 @@ const policeUnits = [
 
 const PoliceWorkspace = () => {
   const { scenario } = useSimulation();
-  const [taskStatus, setTaskStatus] = useState('Perimeter Monitoring Active');
+  const [taskStatus, setTaskStatus] = useState('Perimeter Security Active');
 
   const threatLevel = scenario === 'CRITICAL' ? 'HIGH THREAT' : scenario === 'WARNING' ? 'ELEVATED' : 'LOW THREAT';
 
   return (
     <div className="space-y-6 font-sans">
+      {/* Synchronized RED LIGHT Emergency Alert Banner */}
+      {scenario === 'CRITICAL' && (
+        <div className="p-4 rounded-3xl bg-rose-950/90 border-2 border-rose-500 text-xs font-bold text-rose-200 flex items-center justify-between glow-red animate-pulse shadow-2xl">
+          <div className="flex items-center space-x-3">
+            <Siren className="w-6 h-6 text-rose-500 animate-bounce" />
+            <div>
+              <div className="text-rose-400 font-black text-sm uppercase tracking-wider">POLICE DISPATCH: HIGH THREAT RED LIGHT ALERT</div>
+              <p className="text-[11px] text-slate-200 mt-0.5">Critical crowd crush detected on FOB North. Deploy all available RPF officers to Exit B corridor.</p>
+            </div>
+          </div>
+          <button
+            onClick={() => alert('RPF Perimeter Lock Applied')}
+            className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-lg shadow-rose-600/40 shrink-0"
+          >
+            Lock Inbound Perimeter
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="glass-panel p-5 rounded-3xl border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center space-x-3">
@@ -121,9 +141,9 @@ const PoliceWorkspace = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2 text-xs font-bold uppercase text-slate-200">
                 <Camera className="w-4 h-4 text-blue-400" />
-                <span>Real-Time CCTV Stream (FOB North - Actual Video Asset)</span>
+                <span>Real-Time CCTV Stream (FOB North - Actual Video Stream)</span>
               </div>
-              <span className="text-[10px] text-cyan-400 font-mono">CAM-102 • Live Video Stream</span>
+              <span className="text-[10px] text-cyan-400 font-mono">CAM-102 • Live Stream</span>
             </div>
 
             <ComputerVisionOverlay
