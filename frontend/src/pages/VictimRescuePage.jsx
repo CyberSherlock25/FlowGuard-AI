@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { fetchVictims } from '../services/api';
 import { useSimulation } from '../context/SimulationContext';
-import { HeartPulse, ShieldCheck, AlertCircle, Clock, MapPin, Navigation, User, Activity } from 'lucide-react';
+import { HeartPulse, ShieldCheck, AlertCircle, Clock, MapPin, Navigation, User, Activity, Search, Download } from 'lucide-react';
 
 const VictimRescuePage = () => {
   const { scenario } = useSimulation();
   const [victims, setVictims] = useState([]);
+  const [filterPriority, setFilterPriority] = useState('ALL'); // ALL, CRITICAL, MINOR, SAFE
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchVictims().then(data => setVictims(data));
@@ -15,8 +17,30 @@ const VictimRescuePage = () => {
   const minorCount = scenario === 'CRITICAL' ? 5 : scenario === 'WARNING' ? 3 : 1;
   const criticalCount = scenario === 'CRITICAL' ? 2 : 0;
 
+  const filteredVictims = victims.filter((v) => {
+    const matchesPriority = filterPriority === 'ALL' || v.priority === filterPriority;
+    const matchesSearch = v.victimCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          v.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          v.estimatedAge.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesPriority && matchesSearch;
+  });
+
+  const exportMedicalCsv = () => {
+    let csvContent = "data:text/csv;charset=utf-8,VictimCode,Age,Location,Status,MedicalTeam,ETA,Priority\n";
+    victims.forEach((v) => {
+      csvContent += `${v.victimCode},"${v.estimatedAge}","${v.location}",${v.movementStatus},"${v.nearestMedicalTeam}",${v.eta},${v.priority}\n`;
+    });
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Victim_Triage_List_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* Header */}
       <div className="flex items-center justify-between glass-panel p-4 rounded-2xl border border-slate-800">
         <div className="flex items-center space-x-3">
@@ -29,16 +53,24 @@ const VictimRescuePage = () => {
           </div>
         </div>
 
-        <div className="flex items-center space-x-2 text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300">
-          <Activity className="w-4 h-4 text-emerald-400 animate-pulse" />
-          <span>Real-time Vitals Stream Active</span>
-        </div>
+        <button
+          onClick={exportMedicalCsv}
+          className="py-2 px-4 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-cyan-300 font-bold text-xs flex items-center space-x-2 transition"
+        >
+          <Download className="w-4 h-4 text-cyan-400" />
+          <span>Export Triage CSV</span>
+        </button>
       </div>
 
       {/* Top 3 Metric Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Safe / Rescued */}
-        <div className="glass-card p-5 rounded-2xl border border-emerald-500/40 flex items-center justify-between glow-green">
+        <div
+          onClick={() => setFilterPriority(filterPriority === 'SAFE' ? 'ALL' : 'SAFE')}
+          className={`glass-card p-5 rounded-2xl border flex items-center justify-between cursor-pointer transition ${
+            filterPriority === 'SAFE' ? 'border-emerald-500 bg-emerald-950/30 glow-green' : 'border-emerald-500/40'
+          }`}
+        >
           <div>
             <div className="text-xs text-emerald-400 font-bold uppercase tracking-wider">Safe & Evacuated</div>
             <div className="text-3xl font-black text-slate-100 mt-1">{safeCount}</div>
@@ -50,7 +82,12 @@ const VictimRescuePage = () => {
         </div>
 
         {/* Minor Injury */}
-        <div className="glass-card p-5 rounded-2xl border border-amber-500/40 flex items-center justify-between glow-yellow">
+        <div
+          onClick={() => setFilterPriority(filterPriority === 'MINOR' ? 'ALL' : 'MINOR')}
+          className={`glass-card p-5 rounded-2xl border flex items-center justify-between cursor-pointer transition ${
+            filterPriority === 'MINOR' ? 'border-amber-500 bg-amber-950/30 glow-yellow' : 'border-amber-500/40'
+          }`}
+        >
           <div>
             <div className="text-xs text-amber-400 font-bold uppercase tracking-wider">Minor Triage Priority</div>
             <div className="text-3xl font-black text-slate-100 mt-1">{minorCount}</div>
@@ -62,7 +99,12 @@ const VictimRescuePage = () => {
         </div>
 
         {/* Critical Priority */}
-        <div className="glass-card p-5 rounded-2xl border border-rose-500/60 flex items-center justify-between glow-red">
+        <div
+          onClick={() => setFilterPriority(filterPriority === 'CRITICAL' ? 'ALL' : 'CRITICAL')}
+          className={`glass-card p-5 rounded-2xl border flex items-center justify-between cursor-pointer transition ${
+            filterPriority === 'CRITICAL' ? 'border-rose-500 bg-rose-950/30 glow-red' : 'border-rose-500/60'
+          }`}
+        >
           <div>
             <div className="text-xs text-rose-400 font-bold uppercase tracking-wider">Critical Immediate Rescue</div>
             <div className="text-3xl font-black text-rose-400 mt-1">{criticalCount}</div>
@@ -74,15 +116,43 @@ const VictimRescuePage = () => {
         </div>
       </div>
 
+      {/* Filter & Search Bar */}
+      <div className="glass-panel p-4 rounded-2xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+        <div className="relative w-full sm:w-64">
+          <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search victim code or location..."
+            className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
+          />
+        </div>
+
+        <div className="flex items-center space-x-2">
+          {['ALL', 'CRITICAL', 'MINOR', 'SAFE'].map((p) => (
+            <button
+              key={p}
+              onClick={() => setFilterPriority(p)}
+              className={`px-3 py-1.5 rounded-xl border font-bold text-[11px] transition ${
+                filterPriority === p ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/60' : 'bg-slate-900 text-slate-400 border-slate-800'
+              }`}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Victim Table / Cards List */}
       <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="font-bold text-slate-100 text-sm">AI Suggested Rescue Order & Medical Route</h3>
-          <span className="text-xs text-cyan-400">Sorted by AI Urgency Index</span>
+          <span className="text-xs text-cyan-400">Showing {filteredVictims.length} Patients</span>
         </div>
 
         <div className="space-y-3">
-          {victims.map((v, idx) => (
+          {filteredVictims.map((v, idx) => (
             <div
               key={v.id || idx}
               className={`p-4 rounded-2xl border flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition ${

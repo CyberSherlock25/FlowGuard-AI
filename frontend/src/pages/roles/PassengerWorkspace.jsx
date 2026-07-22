@@ -19,11 +19,36 @@ const PassengerWorkspace = () => {
 
   const toggleVoiceGuidance = () => {
     setIsPlayingAudio(true);
-    setTimeout(() => setIsPlayingAudio(false), 4000);
+
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel(); // Stop any ongoing speech
+
+      let speechText = 'Attention passengers at Mumbai CSMT Station. Please use Escalator 2 for safe passage to Platform 1. Emergency Exit B is clear with 2 minutes walking time.';
+      if (scenario === 'CRITICAL') {
+        speechText = 'EMERGENCY EVACUATION ALERT! Attention passengers: Please proceed immediately to Emergency Exit B. Do NOT use Foot Overbridge North.';
+      } else if (scenario === 'WARNING') {
+        speechText = 'Notice: Foot Overbridge North is experiencing high volume. Please use Escalator 2 for faster exit.';
+      }
+
+      const utterance = new SpeechSynthesisUtterance(speechText);
+      utterance.rate = 0.95;
+      utterance.pitch = 1.0;
+      utterance.onend = () => setIsPlayingAudio(false);
+      utterance.onerror = () => setIsPlayingAudio(false);
+      window.speechSynthesis.speak(utterance);
+    } else {
+      setTimeout(() => setIsPlayingAudio(false), 4000);
+    }
   };
 
   const handleSos = () => {
     setSosTriggered(true);
+
+    if ('speechSynthesis' in window) {
+      const sosUtterance = new SpeechSynthesisUtterance('SOS Emergency alert sent to Railway Police Officers. Help is on the way.');
+      window.speechSynthesis.speak(sosUtterance);
+    }
+
     setTimeout(() => setSosTriggered(false), 5000);
   };
 
@@ -112,17 +137,17 @@ const PassengerWorkspace = () => {
             </div>
           </div>
 
-          {/* Voice Guidance Button */}
+          {/* Voice Guidance Button with Real Text-To-Speech */}
           <button
             onClick={toggleVoiceGuidance}
             className={`w-full py-3 px-4 rounded-2xl border text-xs font-bold flex items-center justify-center space-x-2 transition ${
               isPlayingAudio
-                ? 'bg-cyan-500 text-white border-cyan-400 animate-pulse'
+                ? 'bg-cyan-500 text-slate-950 border-cyan-400 animate-pulse shadow-lg shadow-cyan-500/40'
                 : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
             }`}
           >
-            <Volume2 className="w-4 h-4" />
-            <span>{isPlayingAudio ? 'Playing AI Voice Guidance...' : 'Play Audio Voice Guidance'}</span>
+            <Volume2 className={`w-4 h-4 ${isPlayingAudio ? 'animate-bounce' : ''}`} />
+            <span>{isPlayingAudio ? 'Speaking AI Audio Guidance...' : 'Play Real Audio Voice Guidance'}</span>
           </button>
 
           {/* Emergency Exit & Help Point */}
