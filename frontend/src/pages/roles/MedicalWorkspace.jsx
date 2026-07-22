@@ -13,7 +13,8 @@ import {
   PlusCircle,
   Radio,
   Building2,
-  Navigation
+  Navigation,
+  Siren
 } from 'lucide-react';
 
 const hospitals = [
@@ -37,6 +38,25 @@ const MedicalWorkspace = () => {
 
   return (
     <div className="space-y-6 font-sans">
+      {/* Synchronized RED LIGHT Emergency Alert Banner */}
+      {scenario === 'CRITICAL' && (
+        <div className="p-4 rounded-3xl bg-rose-950/90 border-2 border-rose-500 text-xs font-bold text-rose-200 flex items-center justify-between glow-red animate-pulse shadow-2xl">
+          <div className="flex items-center space-x-3">
+            <Siren className="w-6 h-6 text-rose-500 animate-bounce" />
+            <div>
+              <div className="text-rose-400 font-black text-sm uppercase tracking-wider">MEDICAL DISPATCH: CRITICAL TRIAGE ALERT</div>
+              <p className="text-[11px] text-slate-200 mt-0.5">Critical crowd pressure on FOB North. Dispatch Medical Unit Alpha & prepare stretchers at Exit B.</p>
+            </div>
+          </div>
+          <button
+            onClick={() => alert('Medical Triage Alpha Dispatched')}
+            className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-lg shadow-rose-600/40 shrink-0"
+          >
+            Dispatch Medical Alpha
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="glass-panel p-5 rounded-3xl border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center space-x-3">
@@ -150,74 +170,62 @@ const MedicalWorkspace = () => {
         </div>
       </div>
 
-      {/* Victim Priority Queue & Hospital Bed Status Grid */}
+      {/* Main Grid: Triage Victims & Hospital Bed Telemetry */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Cols: Victim Priority Queue */}
-        <div className="lg:col-span-2 glass-panel p-5 rounded-2xl border border-slate-800 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold text-slate-100 text-sm">AI Victim Priority Triage Queue</h3>
-            <span className="text-xs text-cyan-400">Status: {actionMessage}</span>
-          </div>
-
-          <div className="space-y-3">
-            {victims.map((v) => (
-              <div
-                key={v.id}
-                className={`p-4 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition ${
-                  v.priority === 'CRITICAL' ? 'bg-rose-950/20 border-rose-800/60 glow-red' : v.priority === 'MINOR' ? 'bg-amber-950/20 border-amber-800/60' : 'bg-slate-900/60 border-slate-800'
-                }`}
-              >
-                <div className="flex items-center space-x-3">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${
-                    v.priority === 'CRITICAL' ? 'bg-rose-500 text-white animate-pulse' : v.priority === 'MINOR' ? 'bg-amber-500 text-slate-950' : 'bg-emerald-500 text-slate-950'
-                  }`}>
-                    #{v.suggestedRescueOrder}
-                  </div>
-                  <div>
-                    <div className="font-bold text-slate-100 text-sm">{v.victimCode} ({v.estimatedAge})</div>
-                    <div className="text-xs text-slate-400 flex items-center space-x-2 mt-0.5">
-                      <MapPin className="w-3.5 h-3.5 text-cyan-400" />
-                      <span>{v.location}</span>
+        <div className="lg:col-span-2 space-y-4">
+          <div className="glass-panel p-4 rounded-2xl border border-slate-800 space-y-3">
+            <h3 className="font-bold text-slate-100 text-sm">Active Victim Priority Queue</h3>
+            <div className="space-y-2 text-xs">
+              {victims.map((v, idx) => (
+                <div
+                  key={v.id || idx}
+                  className={`p-3 rounded-xl border flex items-center justify-between transition ${
+                    v.priority === 'CRITICAL' ? 'bg-rose-950/30 border-rose-800/80 glow-red' : v.priority === 'MINOR' ? 'bg-amber-950/30 border-amber-800/80' : 'bg-slate-900/60 border-slate-800'
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${
+                      v.priority === 'CRITICAL' ? 'bg-rose-500 text-white animate-bounce' : v.priority === 'MINOR' ? 'bg-amber-500 text-slate-950' : 'bg-emerald-500 text-slate-950'
+                    }`}>
+                      #{v.suggestedRescueOrder}
+                    </div>
+                    <div>
+                      <div className="font-bold text-slate-100">{v.victimCode} ({v.estimatedAge})</div>
+                      <div className="text-[10px] text-slate-400">{v.location} • Status: {v.movementStatus}</div>
                     </div>
                   </div>
-                </div>
-
-                <div className="flex items-center space-x-4 text-xs">
                   <div className="text-right">
-                    <div className="text-slate-400 text-[10px]">Medical ETA</div>
-                    <div className="font-bold text-cyan-400">{v.eta}</div>
+                    <div className="font-bold text-cyan-300">{v.nearestMedicalTeam}</div>
+                    <div className="text-[10px] text-slate-400">ETA: {v.eta}</div>
                   </div>
-
-                  <button
-                    onClick={() => alert(`Ambulance dispatched to ${v.victimCode}`)}
-                    className="py-2 px-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs shadow-md shadow-rose-600/30 flex items-center space-x-1"
-                  >
-                    <Navigation className="w-3.5 h-3.5" />
-                    <span>Dispatch</span>
-                  </button>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Right 1 Col: Nearby Hospital Availability */}
-        <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4">
-          <h3 className="font-bold text-slate-100 text-sm flex items-center space-x-2">
-            <Building2 className="w-4 h-4 text-cyan-400" />
-            <span>Nearby Hospital Availability</span>
-          </h3>
+        {/* Hospital Bed Telemetry */}
+        <div className="space-y-4">
+          <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4">
+            <h3 className="font-bold text-slate-100 text-sm flex items-center space-x-2">
+              <Building2 className="w-4 h-4 text-cyan-400" />
+              <span>Surrounding Hospital ICU Telemetry</span>
+            </h3>
 
-          <div className="space-y-3 text-xs">
-            {hospitals.map((h, idx) => (
-              <div key={idx} className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1">
-                <div className="font-bold text-slate-200">{h.name}</div>
-                <div className="flex justify-between text-slate-400 text-[10px]">
-                  <span>Distance: {h.distance}</span>
-                  <span className="text-emerald-400 font-bold">{h.beds} ICU Beds Available</span>
+            <div className="space-y-3 text-xs">
+              {hospitals.map((h, idx) => (
+                <div key={idx} className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between">
+                  <div>
+                    <div className="font-bold text-slate-100">{h.name}</div>
+                    <div className="text-[10px] text-slate-400">Distance: {h.distance}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-bold text-emerald-400">{h.beds} ICU Beds</div>
+                    <div className="text-[10px] text-cyan-300 font-semibold">{h.status}</div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </div>
