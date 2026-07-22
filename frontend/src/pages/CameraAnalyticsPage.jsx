@@ -5,6 +5,15 @@ import ComputerVisionOverlay from '../components/ComputerVisionOverlay';
 import CVPipelineInspector from '../components/CVPipelineInspector';
 import { Camera, Eye, Activity, Gauge, Zap, AlertTriangle, ShieldCheck, Cpu } from 'lucide-react';
 
+const videoSources = [
+  '/cctv/cctv1.mp4',
+  '/cctv/cctv3.mp4',
+  '/cctv/cctv2.mp4',
+  '/cctv/cctv1.mp4',
+  '/cctv/cctv2.mp4',
+  '/cctv/cctv3.mp4'
+];
+
 const CameraAnalyticsPage = () => {
   const { scenario } = useSimulation();
   const [cameras, setCameras] = useState([]);
@@ -22,15 +31,15 @@ const CameraAnalyticsPage = () => {
             <Camera className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-slate-100">Live AI Camera Analytics Grid</h2>
-            <p className="text-xs text-slate-400">6 High-Definition CCTV Feeds with YOLOv11 & ByteTrack Computer Vision Overlay</p>
+            <h2 className="text-xl font-bold text-slate-100">Live AI CCTV Surveillance Grid</h2>
+            <p className="text-xs text-slate-400">6 High-Definition CCTV Feeds Playing Real Station Video with YOLOv11 & ByteTrack Computer Vision Overlay</p>
           </div>
         </div>
 
         <div className="flex items-center space-x-2 text-xs font-semibold">
           <span className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center space-x-1">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>6/6 CCTV Telemetry Online</span>
+            <span>6/6 Live MP4 CCTV Streams Active</span>
           </span>
         </div>
       </div>
@@ -38,7 +47,7 @@ const CameraAnalyticsPage = () => {
       {/* Visual 9-Stage Computer Vision Pipeline Inspector */}
       <CVPipelineInspector />
 
-      {/* 6 Live Camera Grid with YOLO Overlays */}
+      {/* 6 Live Camera Grid with Real Video Playback */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {cameras.map((cam, idx) => {
           let isCritical = scenario === 'CRITICAL';
@@ -56,13 +65,14 @@ const CameraAnalyticsPage = () => {
                 isCritical ? 'border-rose-500/70 glow-red' : isWarning ? 'border-amber-500/70 glow-yellow' : 'border-slate-800'
               }`}
             >
-              {/* Computer Vision Render Viewport */}
+              {/* Computer Vision Video Render Viewport */}
               <ComputerVisionOverlay
                 cameraTitle={cam.name}
                 peopleCount={currentPeople}
                 density={currentDensity}
                 psi={currentPressure}
                 speed={currentVelocity}
+                videoSrc={videoSources[idx % videoSources.length]}
               />
 
               {/* Camera Analytics Telemetry Panel */}

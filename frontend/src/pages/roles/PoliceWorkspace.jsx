@@ -12,7 +12,8 @@ import {
   Lock,
   UserCheck,
   Zap,
-  ChevronRight
+  ChevronRight,
+  Eye
 } from 'lucide-react';
 
 const policeUnits = [
@@ -23,7 +24,7 @@ const policeUnits = [
 
 const PoliceWorkspace = () => {
   const { scenario } = useSimulation();
-  const [taskStatus, setTaskStatus] = useState('Standby');
+  const [taskStatus, setTaskStatus] = useState('Perimeter Monitoring Active');
 
   const threatLevel = scenario === 'CRITICAL' ? 'HIGH THREAT' : scenario === 'WARNING' ? 'ELEVATED' : 'LOW THREAT';
 
@@ -40,8 +41,8 @@ const PoliceWorkspace = () => {
               <span>RAILWAY POLICE FORCE (RPF)</span>
               <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping" />
             </div>
-            <h1 className="text-2xl font-black text-slate-100">Perimeter & Crowd Security Dashboard</h1>
-            <p className="text-xs text-slate-400">Station Threat Level Monitoring & Ground Enforcement Dispatch</p>
+            <h1 className="text-2xl font-black text-slate-100">Perimeter Security & Live Station Situation Dashboard</h1>
+            <p className="text-xs text-slate-400">Real-time Station Surveillance, Threat Telemetry & Ground Security Deployment</p>
           </div>
         </div>
 
@@ -63,7 +64,7 @@ const PoliceWorkspace = () => {
         <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Police Operations Dispatch Toolbar</div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
           <button
-            onClick={() => { setTaskStatus('Officers Deployed to FOB'); alert('RPF Officers Deployed to FOB North'); }}
+            onClick={() => { setTaskStatus('Officers Deployed to FOB North'); alert('RPF Officers Deployed to FOB North'); }}
             className="p-3 rounded-xl bg-blue-900/40 hover:bg-blue-800/50 border border-blue-700/60 text-blue-200 text-xs font-semibold flex flex-col items-center justify-center space-y-1 transition text-center"
           >
             <UserCheck className="w-4 h-4 text-blue-400" />
@@ -71,7 +72,7 @@ const PoliceWorkspace = () => {
           </button>
 
           <button
-            onClick={() => { setTaskStatus('Perimeter Secured'); alert('FOB North Perimeter Secured'); }}
+            onClick={() => { setTaskStatus('FOB Perimeter Secured'); alert('FOB North Perimeter Secured'); }}
             className="p-3 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-slate-200 text-xs font-semibold flex flex-col items-center justify-center space-y-1 transition text-center"
           >
             <Lock className="w-4 h-4 text-cyan-400" />
@@ -87,7 +88,7 @@ const PoliceWorkspace = () => {
           </button>
 
           <button
-            onClick={() => { setTaskStatus('Inbound Access Restricted'); alert('Inbound Turnstiles Restricted'); }}
+            onClick={() => { setTaskStatus('Inbound Turnstiles Restricted'); alert('Inbound Turnstiles Restricted'); }}
             className="p-3 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-amber-300 text-xs font-semibold flex flex-col items-center justify-center space-y-1 transition text-center"
           >
             <Lock className="w-4 h-4 text-amber-400" />
@@ -114,15 +115,15 @@ const PoliceWorkspace = () => {
 
       {/* Main Security Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Cols: Live CCTV with YOLO Computer Vision Overlay */}
+        {/* Left 2 Cols: Live Station Situation & Real CCTV Video Stream */}
         <div className="lg:col-span-2 space-y-4">
           <div className="glass-panel p-4 rounded-2xl border border-slate-800 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2 text-xs font-bold uppercase text-slate-200">
                 <Camera className="w-4 h-4 text-blue-400" />
-                <span>Live YOLOv11 Computer Vision Surveillance (FOB North)</span>
+                <span>Real-Time CCTV Stream (FOB North - Actual Video Asset)</span>
               </div>
-              <span className="text-[10px] text-cyan-400 font-mono">CAM-102 • 1080p60</span>
+              <span className="text-[10px] text-cyan-400 font-mono">CAM-102 • Live Video Stream</span>
             </div>
 
             <ComputerVisionOverlay
@@ -131,12 +132,13 @@ const PoliceWorkspace = () => {
               density={scenario === 'CRITICAL' ? 96.0 : scenario === 'WARNING' ? 82.0 : 36.0}
               psi={scenario === 'CRITICAL' ? 8.9 : scenario === 'WARNING' ? 4.8 : 1.5}
               speed={scenario === 'CRITICAL' ? 0.1 : scenario === 'WARNING' ? 0.4 : 1.2}
+              videoSrc="/cctv/cctv3.mp4"
             />
           </div>
 
-          {/* RPF Unit Status Grid */}
+          {/* RPF Officer Station Deployment Map */}
           <div className="glass-panel p-4 rounded-2xl border border-slate-800 space-y-3">
-            <h3 className="font-bold text-slate-100 text-sm">Active RPF Officer Units & Positions</h3>
+            <h3 className="font-bold text-slate-100 text-sm">Active RPF Officer Deployments across Station Locations</h3>
             <div className="space-y-2 text-xs">
               {policeUnits.map((unit) => (
                 <div key={unit.id} className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between">
@@ -146,7 +148,7 @@ const PoliceWorkspace = () => {
                     </div>
                     <div>
                       <div className="font-bold text-slate-100">{unit.name} ({unit.id})</div>
-                      <div className="text-[10px] text-slate-400">{unit.location} • In Charge: {unit.officer}</div>
+                      <div className="text-[10px] text-slate-400">{unit.location} • Officer in Charge: {unit.officer}</div>
                     </div>
                   </div>
                   <div className="text-right">
@@ -159,31 +161,33 @@ const PoliceWorkspace = () => {
           </div>
         </div>
 
-        {/* Right 1 Col: Crowd Behaviour & Security Alerts */}
+        {/* Right 1 Col: Real-time Station Situation Telemetry */}
         <div className="space-y-4">
           <div className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4">
             <h3 className="font-bold text-slate-100 text-sm flex items-center space-x-2">
-              <Zap className="w-4 h-4 text-amber-400" />
-              <span>AI Crowd Behaviour Telemetry</span>
+              <Eye className="w-4 h-4 text-amber-400" />
+              <span>Real-Time Station Threat Telemetry</span>
             </h3>
 
             <div className="space-y-3 text-xs">
               <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1">
-                <div className="text-slate-400 text-[10px]">Flow Compression Index</div>
-                <div className="font-bold text-slate-100 text-sm">High Vector Resistance</div>
-                <p className="text-[10px] text-slate-400">Walking speed restricted to 0.4 m/s</p>
+                <div className="text-slate-400 text-[10px]">Crowd Flow Resistance</div>
+                <div className="font-bold text-slate-100 text-sm">
+                  {scenario === 'CRITICAL' ? 'CRITICAL BOTTLENECK' : scenario === 'WARNING' ? 'ELEVATED FLOW PRESSURE' : 'NORMAL FLOW VELOCITY'}
+                </div>
+                <p className="text-[10px] text-slate-400">Walking speed: {scenario === 'CRITICAL' ? '0.1 m/s' : scenario === 'WARNING' ? '0.4 m/s' : '1.4 m/s'}</p>
               </div>
 
               <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1">
-                <div className="text-slate-400 text-[10px]">Perimeter Gate Status</div>
-                <div className="font-bold text-emerald-400 text-sm">Exit B Unlocked (100% Flow)</div>
-                <p className="text-[10px] text-slate-400">Emergency release triggered</p>
+                <div className="text-slate-400 text-[10px]">Emergency Exit Corridor</div>
+                <div className="font-bold text-emerald-400 text-sm">Exit Gate B (Clear Passage)</div>
+                <p className="text-[10px] text-slate-400">Security perimeter unlocked for egress</p>
               </div>
 
               <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1">
-                <div className="text-slate-400 text-[10px]">Current Task Pipeline</div>
+                <div className="text-slate-400 text-[10px]">Active RPF Task Pipeline</div>
                 <div className="font-bold text-cyan-300 text-sm">{taskStatus}</div>
-                <p className="text-[10px] text-slate-400">Updated by Police Dispatch</p>
+                <p className="text-[10px] text-slate-400">Updated by RPF Ground Dispatch</p>
               </div>
             </div>
           </div>
