@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSimulation } from '../context/SimulationContext';
 import {
   LayoutDashboard,
@@ -15,10 +15,12 @@ import {
   ShieldAlert,
   LogOut,
   ChevronRight,
-  Radio
+  Radio,
+  MessageSquare
 } from 'lucide-react';
 import CriticalCountdownOverlay from '../components/CriticalCountdownOverlay';
 import WebexModal from '../components/WebexModal';
+import AIChatDrawer from '../components/AIChatDrawer';
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -46,6 +48,8 @@ const MainLayout = ({ children }) => {
     manualTriggerEmergency
   } = useSimulation();
 
+  const [aiChatOpen, setAiChatOpen] = useState(false);
+
   const getScenarioBadgeClass = () => {
     switch (scenario) {
       case 'SAFE':
@@ -65,6 +69,7 @@ const MainLayout = ({ children }) => {
     <div className="min-h-screen bg-[#070b19] text-slate-100 flex flex-col font-sans relative overflow-hidden">
       <CriticalCountdownOverlay />
       <WebexModal />
+      <AIChatDrawer isOpen={aiChatOpen} onClose={() => setAiChatOpen(false)} />
 
       {/* Top Header Bar */}
       <header className="h-16 bg-[#0b132b]/90 backdrop-blur-md border-b border-slate-800 flex items-center justify-between px-4 lg:px-6 z-30 sticky top-0">
@@ -170,19 +175,17 @@ const MainLayout = ({ children }) => {
             })}
           </nav>
 
-          {/* Cisco Infrastructure Health */}
-          <div className="p-3 rounded-2xl glass-card border border-slate-800 text-xs space-y-2">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="font-semibold text-slate-300">Cisco Smart Network</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          {/* Ask Gemini AI Trigger Button */}
+          <button
+            onClick={() => setAiChatOpen(true)}
+            className="w-full p-3 rounded-2xl bg-gradient-to-r from-cyan-500/20 to-blue-600/20 border border-cyan-500/40 text-cyan-300 hover:text-white font-bold text-xs flex items-center justify-between transition group shadow-lg shadow-cyan-950"
+          >
+            <div className="flex items-center space-x-2">
+              <MessageSquare className="w-4 h-4 text-cyan-400 group-hover:animate-bounce" />
+              <span>Ask Gemini AI Assistant</span>
             </div>
-            <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-400">
-              <div>IoT Nodes: <span className="text-slate-200 font-semibold">124</span></div>
-              <div>CCTV Feeds: <span className="text-slate-200 font-semibold">6/6</span></div>
-              <div>Latency: <span className="text-emerald-400 font-semibold">4ms</span></div>
-              <div>Mesh Status: <span className="text-cyan-400 font-semibold">Optimal</span></div>
-            </div>
-          </div>
+            <ChevronRight className="w-3.5 h-3.5 text-cyan-400" />
+          </button>
         </aside>
 
         {/* Page Content Viewport */}

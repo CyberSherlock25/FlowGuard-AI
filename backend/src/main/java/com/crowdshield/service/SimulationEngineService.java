@@ -91,6 +91,30 @@ public class SimulationEngineService {
         data.put("predictionAccuracy", 99.4);
         data.put("livesProtected", livesProtectedCount);
         data.put("responseTimeSec", responseTimeSec);
+
+        // Role-Specific Targeted Sync Payload
+        data.put("rolePayloads", Map.of(
+            "stationMaster", Map.of(
+                "alert", currentScenario.equals("CRITICAL") ? "CRITICAL EMERGENCY: Turnstiles auto-locked. Exit B Released." : currentScenario.equals("WARNING") ? "WARNING: Congestion predicted on FOB North in 4 Mins." : "Normal Station Operations",
+                "recommendedAction", "Monitor FOB North & Escalator 2 flow vectors."
+            ),
+            "police", Map.of(
+                "alert", currentScenario.equals("CRITICAL") ? "SECURITY DISPATCH: Deploy 6 RPF officers to FOB North base & Exit B." : currentScenario.equals("WARNING") ? "SECURITY NOTICE: 3 RPF officers to FOB entrance." : "Routine Patrol Active",
+                "threatLevel", currentScenario.equals("CRITICAL") ? "HIGH THREAT" : currentScenario.equals("WARNING") ? "ELEVATED" : "LOW",
+                "task", "Maintain perimeter human corridor at Exit B."
+            ),
+            "medical", Map.of(
+                "alert", currentScenario.equals("CRITICAL") ? "MEDICAL DISPATCH: Emergency Unit Alpha to FOB North base." : currentScenario.equals("WARNING") ? "MEDICAL STANDBY: Station Clinic on 2-min readiness." : "Clinic Standby",
+                "triageCount", currentScenario.equals("CRITICAL") ? Map.of("critical", 2, "minor", 5) : Map.of("critical", 0, "minor", 1),
+                "ambulancesReady", 3
+            ),
+            "passenger", Map.of(
+                "route", currentScenario.equals("CRITICAL") ? "Emergency Evacuation via Exit B" : currentScenario.equals("WARNING") ? "Dynamic Route: Use Escalator 2" : "Standard Route: Gate A -> Platform 1",
+                "walkingTime", currentScenario.equals("CRITICAL") ? "1.5 Mins (Fast Evacuation)" : "3.2 Mins",
+                "voiceNotice", currentScenario.equals("CRITICAL") ? "Attention passengers! Please move to Exit B immediately." : "Platform 1 clear."
+            )
+        ));
+
         data.put("emergencyTeams", Map.of("police", "RPF Unit 4 Active", "medical", "Medical Team Alpha On Standby", "ciscoWebex", "Incident Room Ready"));
         data.put("weather", Map.of("temp", "31°C", "condition", "Partly Cloudy", "humidity", "68%"));
         data.put("trainDelayStatus", "Mumbai CSMT Fast Local - On Time (Arr: 4 Mins)");
@@ -121,28 +145,28 @@ public class SimulationEngineService {
         // Stage 1: SAFE (Immediately)
         setScenarioState("SAFE", 15);
 
-        // Stage 2: WARNING after 6 seconds
+        // Stage 2: WARNING after 5 seconds
         scheduler.schedule(() -> {
             setScenarioState("WARNING", 80);
             updateZonesForWarning();
             broadcastUpdate();
-        }, 6, TimeUnit.SECONDS);
+        }, 5, TimeUnit.SECONDS);
 
-        // Stage 3: CRITICAL after 15 seconds
+        // Stage 3: CRITICAL after 12 seconds
         scheduler.schedule(() -> {
             setScenarioState("CRITICAL", 98);
             updateZonesForCritical();
             broadcastUpdate();
-        }, 15, TimeUnit.SECONDS);
+        }, 12, TimeUnit.SECONDS);
 
-        // Stage 4: RECOVERY MODE after 28 seconds
+        // Stage 4: RECOVERY MODE after 25 seconds
         scheduler.schedule(() -> {
-            setScenarioState("RECOVERY", 25);
+            setScenarioState("RECOVERY", 22);
             updateZonesForRecovery();
-            livesProtectedCount += 12; // Update protected count
+            livesProtectedCount += 12;
             broadcastUpdate();
             simulationRunning = false;
-        }, 28, TimeUnit.SECONDS);
+        }, 25, TimeUnit.SECONDS);
 
         return getDashboardData();
     }
@@ -167,11 +191,6 @@ public class SimulationEngineService {
             }
         }
         zoneRepository.saveAll(zones);
-
-        alertRepository.save(new EmergencyAlert(
-            "Congestion Warning Detected", "AI_PREDICTION", "WARNING", "FOB North & Stairs A",
-            "Walking speed reduced to 0.4 m/s. Pressure building at Foot Overbridge stairs.", "Updated digital signage & alerted Station Master."
-        ));
     }
 
     private void updateZonesForCritical() {
@@ -186,18 +205,13 @@ public class SimulationEngineService {
             z.setSuggestedAction("Stop entry turnstiles, open emergency exit B, activate one-way stair divider, dispatch RPF & Medical.");
         }
         zoneRepository.saveAll(zones);
-
-        alertRepository.save(new EmergencyAlert(
-            "CRITICAL CROWD CRUSH EMERGENCY", "AUTOMATED_DISPATCH", "CRITICAL", "Entire Concourse & FOB",
-            "Crowd pressure index exceeded critical safety limit (8.9 PSI). Turnstiles auto-locked.", "Cisco Webex Incident Room Created. Cooling mist activated."
-        ));
     }
 
     private void updateZonesForRecovery() {
         List<StationZone> zones = zoneRepository.findAll();
         for (StationZone z : zones) {
             z.setStatusColor("GREEN");
-            z.setRiskScore(25);
+            z.setRiskScore(22);
             z.setDensityPercentage(38.0);
             z.setPressurePsi(1.1);
             z.setAvgSpeedMs(1.5);
@@ -205,11 +219,6 @@ public class SimulationEngineService {
             z.setSuggestedAction("Resume standard operations and reopen inbound entry gates.");
         }
         zoneRepository.saveAll(zones);
-
-        alertRepository.save(new EmergencyAlert(
-            "Incident Successfully Prevented", "RECOVERY_MODE", "INFO", "Station Wide",
-            "Emergency intervention completed with 0 casualties. All 12 high-risk victims evacuated.", "Final Incident Report generated."
-        ));
     }
 
     private int calculateTotalPassengers() {
@@ -222,7 +231,6 @@ public class SimulationEngineService {
             String json = new org.springframework.boot.configurationprocessor.json.JSONObject(data).toString();
             webSocketHandler.broadcast(json);
         } catch (Exception e) {
-            // Simplified broadcast fallback
             webSocketHandler.broadcast("{\"scenario\":\"" + currentScenario + "\",\"riskScore\":" + globalRiskScore + "}");
         }
     }

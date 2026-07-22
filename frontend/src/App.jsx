@@ -13,17 +13,41 @@ import PassengerViewPage from './pages/PassengerViewPage';
 import ReportsPage from './pages/ReportsPage';
 import SettingsPage from './pages/SettingsPage';
 
+// Role Workspaces
+import StationMasterWorkspace from './pages/roles/StationMasterWorkspace';
+import PoliceWorkspace from './pages/roles/PoliceWorkspace';
+import MedicalWorkspace from './pages/roles/MedicalWorkspace';
+import CommanderWorkspace from './pages/roles/CommanderWorkspace';
+import PassengerWorkspace from './pages/roles/PassengerWorkspace';
+
 const AppContent = () => {
-  const { token, activeTab } = useSimulation();
+  const { token, userRole, activeTab } = useSimulation();
 
   if (!token) {
     return <LoginPage />;
   }
 
+  const renderRoleDashboard = () => {
+    switch (userRole) {
+      case 'Station Master':
+        return <StationMasterWorkspace />;
+      case 'Railway Police':
+        return <PoliceWorkspace />;
+      case 'Medical Team':
+        return <MedicalWorkspace />;
+      case 'Emergency Commander':
+        return <CommanderWorkspace />;
+      case 'Passenger':
+        return <PassengerWorkspace />;
+      default:
+        return <DashboardPage />;
+    }
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <DashboardPage />;
+        return renderRoleDashboard();
       case 'digital-twin':
         return <DigitalTwinPage />;
       case 'cameras':
@@ -43,7 +67,7 @@ const AppContent = () => {
       case 'settings':
         return <SettingsPage />;
       default:
-        return <DashboardPage />;
+        return renderRoleDashboard();
     }
   };
 
