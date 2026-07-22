@@ -43,7 +43,7 @@ const CameraAnalyticsPage = () => {
         </div>
       </div>
 
-      {/* 6 Live Camera Grid displaying Large, Clear Videos */}
+      {/* 6 Live Camera Grid with Clean Single Telemetry Overlay */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {cameras.map((cam, idx) => {
           let isCritical = scenario === 'CRITICAL';
@@ -54,6 +54,12 @@ const CameraAnalyticsPage = () => {
           let currentVelocity = isCritical ? 0.1 : isWarning ? 0.4 : cam.movementVelocity;
           let currentPressure = isCritical ? 8.9 : isWarning ? 4.8 : cam.pressureIndex;
 
+          let aiObservation = isCritical
+            ? 'CRITICAL CROWD PRESSURE: Lock turnstiles & release Exit B immediately.'
+            : isWarning
+            ? 'WARNING: Pedestrian walking speed slowed to 0.4 m/s. Re-route flow to Escalator 2.'
+            : cam.aiObservation || 'Normal passenger flow. Flow vector steady.';
+
           return (
             <div
               key={cam.cameraId || idx}
@@ -61,7 +67,7 @@ const CameraAnalyticsPage = () => {
                 isCritical ? 'border-rose-500/80 glow-red' : isWarning ? 'border-amber-500/80 glow-yellow' : 'border-slate-800'
               }`}
             >
-              {/* Computer Vision Video Render Viewport */}
+              {/* Computer Vision Video Render Viewport (Contains single, crisp HUD ribbon) */}
               <ComputerVisionOverlay
                 cameraTitle={cam.name}
                 peopleCount={currentPeople}
@@ -71,29 +77,20 @@ const CameraAnalyticsPage = () => {
                 videoSrc={videoSources[idx % videoSources.length]}
               />
 
-              {/* Camera Analytics Telemetry Panel */}
-              <div className="p-4 space-y-3">
+              {/* Clean Single Bottom Metadata Ribbon (No Duplicate Metrics) */}
+              <div className="p-3.5 space-y-2 bg-slate-950/60 border-t border-slate-800/80">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-bold text-slate-100">{cam.location} Zone</span>
-                  <span className={`px-2.5 py-1 rounded text-[10px] font-bold ${
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                     isCritical ? 'bg-rose-500 text-white animate-pulse' : isWarning ? 'bg-amber-500 text-slate-950' : 'bg-emerald-500/20 text-emerald-400'
                   }`}>
-                    {isCritical ? 'CRITICAL CROWD (98%)' : isWarning ? 'WARNING CONGESTION (80%)' : 'SAFE FLOW (15%)'}
+                    {isCritical ? 'CRITICAL (98%)' : isWarning ? 'WARNING (80%)' : 'SAFE (15%)'}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 space-y-0.5">
-                    <div className="text-slate-400 text-[10px]">People Count</div>
-                    <div className="font-bold text-slate-100 text-sm">{currentPeople} Persons</div>
-                  </div>
-
-                  <div className="bg-slate-900/80 p-2.5 rounded-xl border border-slate-800 space-y-0.5">
-                    <div className="text-slate-400 text-[10px]">Crowd Density</div>
-                    <div className={`font-bold text-sm ${currentDensity > 80 ? 'text-rose-400' : currentDensity > 50 ? 'text-amber-400' : 'text-emerald-400'}`}>
-                      {currentDensity}%
-                    </div>
-                  </div>
+                <div className="text-[11px] text-slate-300 flex items-start space-x-1.5 bg-slate-900/90 p-2 rounded-xl border border-slate-800/80">
+                  <Zap className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
+                  <span className="line-clamp-1">{aiObservation}</span>
                 </div>
               </div>
             </div>
